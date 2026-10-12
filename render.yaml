@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: studio-dylan-demo
+    runtime: static
+    buildCommand: "true"
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
