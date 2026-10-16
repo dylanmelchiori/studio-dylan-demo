@@ -1,9 +1,9 @@
 "use strict";
-const state = publicContent;
-const allTimes = ["09:00", "10:00", "11:00", "12:00", "13:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+const demoStore = window.DylanDemo;
+const state = { ...publicContent, services: demoStore.get().services };
+const allTimes = demoStore.allTimes;
 let selectedDate = "", selectedTime = "", bookableDaysKey = "";
 let scheduleLocked = false;
-let occupiedSlots = [];
 const menuButton = document.querySelector(".icon-button");
 const mobileMenu = document.querySelector(".mobile-menu");
 const siteHeader = document.querySelector(".site-header");
@@ -18,6 +18,8 @@ const slotPicker = document.querySelector("#slot-picker");
 const bookingDetails = document.querySelector("#booking-details");
 const bookingPlaceholder = document.querySelector("#booking-placeholder");
 const mobileCtaLink = document.querySelector(".mobile-cta a");
+const mobileCta = document.querySelector(".mobile-cta");
+const headerBookingCta = document.querySelector(".header-actions .compact-cta");
 const result = document.querySelector("#demo-result");
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"})[character]);
 const pad = (value) => String(value).padStart(2, "0");
@@ -25,7 +27,7 @@ const formatDate = (isoDate, options = {weekday:"long", day:"numeric", month:"lo
   const value = new Date(isoDate + "T12:00:00").toLocaleDateString("es-AR", options);
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
-const isOccupied = (date, time) => occupiedSlots.some((slot) => slot.date === date && slot.time === time);
+const isOccupied = (date, time) => !demoStore.isAvailable(date, time, serviceSelect.value || state.services[0].id);
 const getService = (id) => state.services.find((service) => service.id === id) || state.services[0];
       const getBuenosAiresClock = (now = new Date()) => {
         const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
@@ -63,6 +65,8 @@ const getBookableDays = (now = new Date()) => {
   return days;
 };
       const renderImprint = () => {
+        const website = demoStore.get().website;
+        state.imprint = { ...publicContent.imprint, title: website.imprintTitle, copy: website.imprintCopy, name: website.name, quote: website.quote, detail: website.detail, photo: website.profileImage };
         document.querySelector("#imprint-title").textContent = state.imprint.title;
         document.querySelector("#imprint-copy").textContent = state.imprint.copy;
         document.querySelector("#imprint-name").textContent = state.imprint.name;
@@ -71,7 +75,9 @@ const getBookableDays = (now = new Date()) => {
         document.querySelector("#imprint-tags").innerHTML = (state.imprint.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
 
         const photo = document.querySelector("#imprint-photo");
-        if (state.imprint.photo && /^assets\//.test(state.imprint.photo)) {
+        photo.setAttribute("role", "img");
+        photo.setAttribute("aria-label", website.profileImageAlt || "Studio Dylan");
+        if (state.imprint.photo && /^(assets\/|data:image\/(jpeg|png|webp);base64,)/.test(state.imprint.photo)) {
           photo.style.backgroundImage = `linear-gradient(rgba(5, 12, 12, 0.18), rgba(5, 12, 12, 0.18)), url("${state.imprint.photo.replace(/"/g, "%22")}")`;
           photo.style.backgroundSize = "cover";
           photo.style.backgroundPosition = "center";
@@ -83,6 +89,30 @@ const getBookableDays = (now = new Date()) => {
           photo.textContent = "";
         }
       };
+
+const renderWebsite = () => {
+  const website = demoStore.get().website;
+  document.querySelector(".hero h1").textContent = website.heroTitle;
+  document.querySelector(".hero-copy").textContent = website.heroCopy;
+  const heroImage = document.querySelector("#public-hero-image");
+  heroImage.hidden = !website.heroImage;
+  if (website.heroImage) heroImage.src = website.heroImage;
+  else heroImage.removeAttribute("src");
+  heroImage.alt = website.heroImageAlt;
+  document.querySelector("#public-contact-name").textContent = website.name;
+  document.querySelector("#public-contact-address").textContent = website.address;
+  const whatsapp = document.querySelector("#public-whatsapp");
+  const phone = website.whatsapp.replace(/\D/g, "");
+  whatsapp.hidden = !phone;
+  if (phone) whatsapp.href = `https://wa.me/${phone}`;
+  else whatsapp.removeAttribute("href");
+  const instagram = document.querySelector("#public-instagram");
+  const handle = website.instagram.replace(/^@/, "");
+  instagram.hidden = !/^[a-zA-Z0-9._]{1,30}$/.test(handle);
+  if (!instagram.hidden) instagram.href = `https://www.instagram.com/${encodeURIComponent(handle)}/`;
+  else instagram.removeAttribute("href");
+  renderImprint();
+};
 
       const renderServices = () => {
         const serviceGrid = document.querySelector("#public-services");
@@ -133,8 +163,7 @@ const getBookableDays = (now = new Date()) => {
         }
 
         dayTabs.innerHTML = bookableDays.map((date) => {
-          const occupied = new Set(occupiedSlots.filter((slot) => slot.date === date).map((slot) => slot.time)).size;
-          const available = Math.max(0, allTimes.length - occupied);
+          const available = allTimes.filter((time) => !isOccupied(date, time)).length;
           const active = selectedDate === date;
           return `
             <button class="day-tab${active ? " active" : ""}" type="button" data-date="${date}" aria-pressed="${active}">
@@ -153,12 +182,12 @@ const getBookableDays = (now = new Date()) => {
           const selected = selectedTime === time;
           return `
             <button class="slot${occupied ? " disabled" : ""}${selected ? " selected" : ""}" type="button" data-time="${time}" aria-pressed="${selected}" ${occupied ? "disabled" : ""}>
-              ${time}<small>${occupied ? "Ocupado" : "Disponible"}</small>
+              ${time}<small>${occupied ? "No disponible" : "Disponible"}</small>
             </button>
           `;
         }).join("");
-        document.querySelector("#morning-slots").innerHTML = renderGroup(allTimes.slice(0, 5));
-        document.querySelector("#afternoon-slots").innerHTML = renderGroup(allTimes.slice(5));
+        document.querySelector("#morning-slots").innerHTML = renderGroup(allTimes.filter((time) => time < "13:00"));
+        document.querySelector("#afternoon-slots").innerHTML = renderGroup(allTimes.filter((time) => time >= "15:00"));
       };
 
       const renderBookingSelection = () => {
@@ -180,6 +209,34 @@ const closeMenu = () => {
   document.body.classList.remove("menu-open");
   menuButton.setAttribute("aria-expanded", "false");
 };
+// Keep persistent reservation shortcuts out of the way while reading down.
+let previousScroll = Math.max(0, window.scrollY);
+let scrollDirection = 0;
+let scrollDistance = 0;
+let scrollFrame = false;
+const showBookingShortcuts = (show) => {
+  [mobileCta, headerBookingCta].forEach((element) => {
+    element.classList.toggle("booking-cta-hidden", !show);
+    element.inert = !show;
+  });
+};
+window.addEventListener("scroll", () => {
+  if (scrollFrame) return;
+  scrollFrame = true;
+  requestAnimationFrame(() => {
+    scrollFrame = false;
+    const current = Math.max(0, window.scrollY);
+    const delta = current - previousScroll;
+    previousScroll = current;
+    if (document.body.classList.contains("menu-open")) return;
+    if (current <= 8) { showBookingShortcuts(true); scrollDistance = 0; return; }
+    if (Math.abs(delta) < 1) return;
+    const direction = Math.sign(delta);
+    scrollDistance = direction === scrollDirection ? scrollDistance + Math.abs(delta) : Math.abs(delta);
+    scrollDirection = direction;
+    if (scrollDistance >= 10) showBookingShortcuts(direction < 0);
+  });
+}, { passive: true });
 menuButton.addEventListener("click", () => {
   const open = !mobileMenu.classList.contains("open");
   mobileMenu.classList.toggle("open", open);
@@ -203,15 +260,27 @@ document.querySelector(".booking-board").addEventListener("click", (event) => {
   renderBooking();
   if (window.innerWidth < 740) bookingDetails.scrollIntoView({behavior:"smooth", block:"start"});
 });
-serviceSelect.addEventListener("change", updateSelectedService);
+serviceSelect.addEventListener("change", () => {
+  if (selectedDate && selectedTime && isOccupied(selectedDate, selectedTime)) selectedTime = "";
+  updateSelectedService(); renderBooking();
+});
 bookingForm.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!selectedDate || !selectedTime || !bookingForm.reportValidity()) return;
-  if (isOccupied(selectedDate, selectedTime)) return;
   const summary = `${getService(serviceSelect.value).name} · ${formatDate(selectedDate)} · ${selectedTime}`;
-  occupiedSlots.push({date:selectedDate, time:selectedTime});
+  const bookedDate = selectedDate;
+  try {
+    const fields = new FormData(bookingForm);
+    demoStore.createAppointment({ client: fields.get("nombre"), phone: fields.get("whatsapp"), date: selectedDate, time: selectedTime, serviceId: serviceSelect.value, source: "web" });
+  } catch (error) {
+    bookingForm.querySelector(".form-message").textContent = error.message;
+    renderBooking();
+    return;
+  }
+  bookingForm.querySelector(".form-message").textContent = "";
   result.querySelector("strong").textContent = "¡Prueba completada!";
   result.querySelector(".demo-summary").textContent = summary;
+  result.querySelector("a").href = `admin.html?date=${encodeURIComponent(bookedDate)}`;
   result.hidden = false;
   selectedTime = "";
   bookingForm.reset();
@@ -220,11 +289,11 @@ bookingForm.addEventListener("submit", (event) => {
   result.scrollIntoView({behavior:"smooth", block:"center"});
 });
 document.querySelector("#reset-demo").addEventListener("click", () => {
-  occupiedSlots = [];
   selectedDate = "";
   selectedTime = "";
   result.hidden = true;
   bookingForm.reset();
+  bookingForm.querySelector(".form-message").textContent = "";
   renderBooking();
   bookingSection.scrollIntoView({behavior:"smooth", block:"start"});
 });
@@ -235,4 +304,18 @@ if ("IntersectionObserver" in window) {
     mobileCtaLink.href = visible && selectedTime ? "#booking-form" : "#turnos";
   }, {threshold:0.22}).observe(bookingSection);
 }
-renderImprint(); renderServices(); renderBooking();
+const updateStorageNotice = () => { document.querySelector("#public-storage-note").hidden = demoStore.storageAvailable(); };
+renderWebsite(); renderServices(); renderBooking(); updateStorageNotice();
+demoStore.subscribe(() => {
+  updateStorageNotice();
+  renderWebsite();
+  state.services = demoStore.get().services;
+  renderServices();
+  if (selectedDate && selectedTime && isOccupied(selectedDate, selectedTime)) selectedTime = "";
+  renderBooking();
+});
+window.addEventListener("pageshow", () => {
+  renderWebsite();
+  state.services = demoStore.get().services;
+  renderServices(); renderBooking();
+});
