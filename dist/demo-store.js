@@ -102,7 +102,8 @@
       const appointment = {
         id: globalThis.crypto?.randomUUID?.() || `turno-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         client, phone: String(input.phone || "").trim().slice(0, 40), date: input.date, time: input.time,
-        serviceId: service.id, serviceName: service.name, duration: service.duration,
+        serviceId: service.id, serviceName: service.name, servicePrice: service.price, duration: service.duration,
+        ...(input.source === "web" && typeof input.customerId === "string" && input.customerId.length <= 100 ? { customerId: input.customerId } : {}),
         status: "confirmed", notes: String(input.notes || "").trim().slice(0, 300), source: input.source === "web" ? "web" : "manual",
       };
       data.appointments.push(appointment);

@@ -319,6 +319,9 @@ select { padding-right: 26px; }
 /* Comfortable controls on iPhone without changing the desktop layout. */
 @media (max-width: 720px) {
   .main-content { padding-bottom: calc(1px + env(safe-area-inset-bottom, 0px)); }
+  .panel-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
+  .panel-nav .nav-item { flex-direction:column; justify-content:flex-start; gap:5px; min-width:0; min-height:66px; padding:10px 3px 8px; text-align:center; }
+  .panel-nav .nav-item > span:not(.nav-arrow) { font-size:11px; line-height:1.2; }
   input, select, textarea, .date-field input, .filter-field select, .search-field input { min-width: 0; font-size: 16px; }
   input[type="date"] { min-inline-size: 0; }
   .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

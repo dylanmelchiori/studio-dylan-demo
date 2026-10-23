@@ -11,10 +11,15 @@
     <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="clients-panel.css" />
     <link rel="stylesheet" href="content-editor.css" />
+    <link rel="stylesheet" href="calendar-panel.css" />
+    <link rel="stylesheet" href="reminders-panel.css" />
     <script src="content.js" defer></script>
     <script src="demo-store.js" defer></script>
+    <script src="calendar-files.js" defer></script>
+    <script src="calendar-panel.js" defer></script>
     <script src="clients-panel.js" defer></script>
     <script src="content-editor.js" defer></script>
+    <script src="reminders-panel.js" defer></script>
     <script src="admin.js" defer></script>
   </head>
   <body>
@@ -38,6 +43,10 @@
           <button class="nav-item" type="button" data-view="servicios" aria-controls="panel-servicios">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5.5" cy="6.5" r="3"/><circle cx="5.5" cy="17.5" r="3"/><path d="m8 8 12 12M8 16 20 4m-8 8 2 2"/></svg>
             <span>Servicios y web</span><span class="nav-arrow" aria-hidden="true">›</span>
+          </button>
+          <button class="nav-item" type="button" data-view="recordatorios" aria-controls="panel-recordatorios">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l1.1-4.4A8.5 8.5 0 1 1 20 11.5Z"/><path d="M8 8c0 4 2 6 6 6l1-2-2-1-1 1-2-2 1-1-1-2-2 1Z"/></svg>
+            <span>WhatsApp</span><span class="nav-arrow" aria-hidden="true">›</span>
           </button>
         </nav>
         <div class="sidebar-bottom">
@@ -85,6 +94,8 @@
         <section id="panel-servicios" class="view-panel" data-panel="servicios" aria-label="Servicios" hidden>
           <div class="services-heading"><div><p class="eyebrow">LO QUE HACÉS MEJOR</p><h2>Servicios del estudio</h2><p class="section-description">Ajustá el nombre, la duración y el precio de cada servicio de la demo.</p></div><span class="catalogue-note">TU CATÁLOGO</span></div><div id="service-list" class="service-list"></div>
         </section>
+
+        <section id="panel-recordatorios" class="view-panel" data-panel="recordatorios" aria-label="Recordatorios por WhatsApp" hidden></section>
 
         <footer class="main-footer"><p>Studio Dylan <span aria-hidden="true">/</span> Hecho para tu día a día.</p><button id="reset-demo-data" type="button">Restablecer datos de ejemplo</button></footer>
       </main>

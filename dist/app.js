@@ -1,5 +1,6 @@
 "use strict";
 const demoStore = window.DylanDemo;
+const customerStore = window.DylanCustomer;
 const state = { ...publicContent, services: demoStore.get().services };
 const allTimes = demoStore.allTimes;
 let selectedDate = "", selectedTime = "", bookableDaysKey = "";
@@ -21,6 +22,18 @@ const mobileCtaLink = document.querySelector(".mobile-cta a");
 const mobileCta = document.querySelector(".mobile-cta");
 const headerBookingCta = document.querySelector(".header-actions .compact-cta");
 const result = document.querySelector("#demo-result");
+const bookingCalendarButton = document.querySelector("#booking-calendar");
+let lastBookedAppointmentId = null;
+let activeCustomerId = null;
+const updateCalendarAction = () => {
+  const appointment = demoStore.get().appointments.find((a) => a.id === lastBookedAppointmentId);
+  bookingCalendarButton.disabled = !appointment || appointment.status === "cancelled";
+  document.querySelector("#booking-calendar-message").textContent = appointment?.status === "cancelled" ? "Este turno de prueba fue cancelado en el panel." : "";
+};
+bookingCalendarButton.addEventListener("click", () => {
+  const appointment = demoStore.get().appointments.find((a) => a.id === lastBookedAppointmentId);
+  window.DylanCalendarPanel.openAppointment(appointment, "customer");
+});
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"})[character]);
 const pad = (value) => String(value).padStart(2, "0");
 const formatDate = (isoDate, options = {weekday:"long", day:"numeric", month:"long"}) => {
@@ -266,33 +279,47 @@ serviceSelect.addEventListener("change", () => {
 });
 bookingForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const profile = customerStore.getProfile();
+  if (!profile) { window.DylanCustomerUI.openLogin({ onSuccess: () => bookingSection.scrollIntoView({ behavior: "smooth", block: "start" }) }); return; }
   if (!selectedDate || !selectedTime || !bookingForm.reportValidity()) return;
   const summary = `${getService(serviceSelect.value).name} · ${formatDate(selectedDate)} · ${selectedTime}`;
   const bookedDate = selectedDate;
   try {
-    const fields = new FormData(bookingForm);
-    demoStore.createAppointment({ client: fields.get("nombre"), phone: fields.get("whatsapp"), date: selectedDate, time: selectedTime, serviceId: serviceSelect.value, source: "web" });
+    customerStore.updateProfile({ preferredServiceId: serviceSelect.value });
+    const appointment = demoStore.createAppointment({ client: profile.name, phone: profile.phone, customerId: profile.id, date: selectedDate, time: selectedTime, serviceId: serviceSelect.value, source: "web" });
+    lastBookedAppointmentId = appointment.id;
+    customerStore.rememberAppointment(appointment.id);
   } catch (error) {
     bookingForm.querySelector(".form-message").textContent = error.message;
     renderBooking();
     return;
   }
   bookingForm.querySelector(".form-message").textContent = "";
-  result.querySelector("strong").textContent = "¡Prueba completada!";
+  result.querySelector("strong").textContent = "Tu próximo momento, listo.";
   result.querySelector(".demo-summary").textContent = summary;
-  result.querySelector("a").href = `admin.html?date=${encodeURIComponent(bookedDate)}`;
+  document.querySelector("#admin-result-link").href = `admin.html?date=${encodeURIComponent(bookedDate)}`;
+  const customerLink = document.querySelector("#customer-result-link");
+  customerLink.href = `customer.html?appointment=${encodeURIComponent(lastBookedAppointmentId)}`;
+  const canNavigate = demoStore.storageAvailable() && customerStore.storageAvailable();
+  customerLink.hidden = !canNavigate;
+  document.querySelector("#customer-result-note").textContent = canNavigate ? "Tu turno de prueba quedó guardado en este navegador." : "El navegador no pudo guardar la prueba. Podés revisar este resumen y añadirlo al calendario mientras esta página siga abierta. Habilitá el almacenamiento para usar Mi espacio.";
   result.hidden = false;
+  updateCalendarAction();
   selectedTime = "";
   bookingForm.reset();
+  fillCustomerFields();
   bookingPlaceholder.textContent = "Podés elegir otro horario para seguir probando.";
   renderBooking();
   result.scrollIntoView({behavior:"smooth", block:"center"});
+  if (canNavigate) window.location.assign(customerLink.href);
 });
 document.querySelector("#reset-demo").addEventListener("click", () => {
+  lastBookedAppointmentId = null;
   selectedDate = "";
   selectedTime = "";
   result.hidden = true;
   bookingForm.reset();
+  fillCustomerFields();
   bookingForm.querySelector(".form-message").textContent = "";
   renderBooking();
   bookingSection.scrollIntoView({behavior:"smooth", block:"start"});
@@ -300,14 +327,79 @@ document.querySelector("#reset-demo").addEventListener("click", () => {
 if ("IntersectionObserver" in window) {
   new IntersectionObserver((entries) => {
     const visible = entries.some((entry) => entry.isIntersecting);
-    mobileCtaLink.textContent = visible && selectedTime ? "Completar prueba" : "Probar reserva";
+    mobileCtaLink.textContent = visible && selectedTime ? "Revisar mi turno" : "Probar reserva";
     mobileCtaLink.href = visible && selectedTime ? "#booking-form" : "#turnos";
   }, {threshold:0.22}).observe(bookingSection);
 }
-const updateStorageNotice = () => { document.querySelector("#public-storage-note").hidden = demoStore.storageAvailable(); };
-renderWebsite(); renderServices(); renderBooking(); updateStorageNotice();
+const fillCustomerFields = () => {
+  const profile = customerStore.getProfile();
+  bookingForm.elements.nombre.value = profile?.name || "";
+  bookingForm.elements.whatsapp.value = profile?.phone || "";
+};
+const renderCustomer = () => {
+  const profile = customerStore.getProfile();
+  if (activeCustomerId !== (profile?.id || null)) {
+    const calendarDialog = document.querySelector("#dylan-calendar-dialog");
+    if (calendarDialog?.open) calendarDialog.close();
+    activeCustomerId = profile?.id || null;
+    selectedDate = "";
+    selectedTime = "";
+    lastBookedAppointmentId = null;
+    result.hidden = true;
+    if (state.services.some((service) => service.id === profile?.preferredServiceId)) serviceSelect.value = profile.preferredServiceId;
+    else serviceSelect.value = state.services[0].id;
+    bookingPlaceholder.textContent = "Elegí un día y un horario para continuar.";
+    bookingForm.querySelector(".form-message").textContent = "";
+  }
+  document.querySelector("#customer-booking-shell").hidden = !profile;
+  document.querySelector("#customer-booking-login").hidden = Boolean(profile);
+  document.querySelector("#customer-booking-logout").hidden = !profile;
+  document.querySelector("#customer-space-link").hidden = !profile;
+  document.querySelector("#customer-welcome").textContent = profile ? `Hola, ${profile.name.split(" ")[0]}. Todo listo para tu próximo corte.` : "Primero, nos conocemos.";
+  document.querySelector("#customer-caption").textContent = profile ? "Tus datos ya están guardados. Elegí tu servicio, día y horario." : "Ingresá una vez. Tus datos estarán listos en cada reserva.";
+  document.querySelector("#customer-avatar").textContent = profile ? profile.name.split(/\s+/).slice(0, 2).map((part) => Array.from(part)[0]).join("").toUpperCase() : "01";
+  document.querySelectorAll("[data-customer-access] span").forEach((node) => { node.textContent = profile ? "Mi espacio" : "Ingresar"; });
+  fillCustomerFields();
+  renderBooking();
+};
+const openBookingLogin = () => {
+  closeMenu();
+  window.DylanCustomerUI.openLogin({ onSuccess: () => {
+    bookingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    serviceSelect.focus({ preventScroll: true });
+  } });
+};
+document.querySelectorAll("[data-customer-access]").forEach((button) => button.addEventListener("click", () => {
+  if (customerStore.getProfile()) openCustomerSpace();
+  else openBookingLogin();
+}));
+document.querySelector("#customer-booking-login").addEventListener("click", openBookingLogin);
+document.querySelector("#customer-booking-logout").addEventListener("click", () => { customerStore.signOut(); document.querySelector("#customer-booking-login").focus(); });
+document.querySelector("#customer-edit-booking").addEventListener("click", () => window.DylanCustomerUI.openLogin({ edit: true }));
+const canOpenCustomerSpace = () => demoStore.storageAvailable() && customerStore.storageAvailable();
+const openCustomerSpace = (url = "customer.html") => {
+  if (canOpenCustomerSpace()) { window.location.assign(url); return; }
+  document.querySelector("#customer-storage-note").hidden = false;
+  bookingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[href^='customer.html']");
+  if (!link || canOpenCustomerSpace()) return;
+  event.preventDefault();
+  closeMenu();
+  openCustomerSpace();
+});
+const updateStorageNotice = () => {
+  const available = canOpenCustomerSpace();
+  document.querySelector("#public-storage-note").hidden = available;
+  document.querySelector("#customer-storage-note").hidden = available;
+};
+renderWebsite(); renderServices(); renderCustomer(); updateStorageNotice();
+customerStore.subscribe(() => { renderCustomer(); updateStorageNotice(); });
 demoStore.subscribe(() => {
   updateStorageNotice();
+  updateCalendarAction();
+  window.DylanCalendarPanel.render(demoStore.get());
   renderWebsite();
   state.services = demoStore.get().services;
   renderServices();
@@ -315,6 +407,8 @@ demoStore.subscribe(() => {
   renderBooking();
 });
 window.addEventListener("pageshow", () => {
+  updateCalendarAction();
+  window.DylanCalendarPanel.render(demoStore.get());
   renderWebsite();
   state.services = demoStore.get().services;
   renderServices(); renderBooking();

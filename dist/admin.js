@@ -34,7 +34,7 @@
         <div class="client-avatar" aria-hidden="true">${escape(initials(a.client))}</div>
         <div class="appointment-detail"><h3>${escape(a.client)}</h3><p>${escape(a.serviceName)} <span class="source-label">· ${escape(sources[a.source] || "Ejemplo")}</span></p>${a.notes ? `<p class="appointment-note">${escape(a.notes)}</p>` : ""}</div>
         <span class="status-badge ${escape(a.status)}">${labels[a.status]}</span>
-        <div class="appointment-actions">${a.status === "confirmed" ? `<button class="button-small" type="button" data-complete="${escape(a.id)}" aria-label="Marcar como atendido a ${escape(a.client)}">Atendido</button><button class="button-text danger" type="button" data-cancel="${escape(a.id)}" aria-label="Cancelar turno de ${escape(a.client)}">Cancelar</button>` : `<span class="record-label">${a.status === "completed" ? "Finalizado" : "Horario liberado"}</span>`}</div>
+        <div class="appointment-actions">${a.status === "confirmed" ? `<button class="button-small" type="button" data-complete="${escape(a.id)}" aria-label="Marcar como atendido a ${escape(a.client)}">Atendido</button><button class="button-text" type="button" data-calendar="${escape(a.id)}" aria-label="Añadir al calendario el turno de ${escape(a.client)}">Calendario ↗</button><button class="button-text danger" type="button" data-cancel="${escape(a.id)}" aria-label="Cancelar turno de ${escape(a.client)}">Cancelar</button>` : `<span class="record-label">${a.status === "completed" ? "Finalizado" : "Horario liberado"}</span>`}</div>
       </article>`).join("") : emptyState("Tu agenda está libre", status !== "all" ? "No hay turnos con este estado en la fecha elegida." : store.isOpenDay(selectedDate) ? "Agregá un turno para empezar a organizar el día." : "El salón atiende de martes a sábado. Podés elegir otro día.");
   };
   const renderClients = (data) => window.DylanClients.render(data);
@@ -47,6 +47,8 @@
     $("#storage-note").hidden = store.storageAvailable();
     renderAgenda(data); renderClients(data); renderServices(data);
     window.DylanEditor.render(data);
+    window.DylanCalendarPanel.render(data);
+    window.DylanReminders.render(data);
   };
   const setView = (view) => {
     const changed = currentView !== view;
@@ -55,6 +57,7 @@
       agenda: ["Tu día, en orden.", "Un vistazo a los turnos, más tiempo para hacer lo tuyo."],
       clientes: ["Conocé a tus clientes.", "Un panorama de sus visitas, sus preferencias y lo que viene."],
       servicios: ["La web, a tu manera.", "Tu catálogo, tus imágenes y tu forma de presentarte."],
+      recordatorios: ["Que nadie se olvide.", "Prepará el mensaje y el momento para recordar cada turno."],
     };
     document.querySelectorAll("[data-panel]").forEach((panel) => { panel.hidden = panel.dataset.panel !== view; });
     document.querySelectorAll("[data-view]").forEach((button) => {
@@ -114,6 +117,11 @@
   $("#appointment-list").addEventListener("click", (event) => {
     const complete = event.target.closest("[data-complete]");
     const cancel = event.target.closest("[data-cancel]");
+    const calendar = event.target.closest("[data-calendar]");
+    if (calendar) {
+      const appointment = store.get().appointments.find((a) => a.id === calendar.dataset.calendar);
+      window.DylanCalendarPanel.openAppointment(appointment, "admin");
+    }
     if (complete) {
       try { store.setStatus(complete.dataset.complete, "completed"); toast("Turno marcado como atendido."); }
       catch (error) { toast(error.message); }
@@ -146,7 +154,7 @@
   });
   $("#reset-demo-data").addEventListener("click", () => confirm("¿Reiniciar la demostración?", "Se borrarán los turnos de prueba y los cambios en servicios, imágenes y textos de este navegador. Volverán los ejemplos iniciales.", "Reiniciar demo", () => {
     store.reset(); selectedDate = store.nextOpenDay(store.today());
-    $("#status-filter").value = "all"; window.DylanClients.resetFilters(); window.DylanEditor.resetDraft();
+    $("#status-filter").value = "all"; window.DylanClients.resetFilters(); window.DylanEditor.resetDraft(); window.DylanReminders.resetDraft();
     setView("agenda"); render(); toast("La demostración volvió al inicio.");
   }));
   $("#confirm-form").addEventListener("submit", (event) => {

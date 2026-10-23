@@ -1,0 +1,37 @@
+.customer-login-open { overflow: hidden; }
+.customer-login { box-sizing:border-box; width:min(460px,calc(100% - 32px)); max-height:calc(100svh - 40px); padding:38px; border:1px solid #dcd1bd; border-radius:22px; color:#1d2a20; background:#fffdf8; box-shadow:0 30px 100px #0e211b40; font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif; }
+.customer-login::backdrop { background:#14251dc9; backdrop-filter:blur(7px); }
+.customer-login-close { position:absolute; right:16px; top:12px; width:44px; height:44px; border:0; border-radius:50%; background:transparent; color:#657066; font-size:28px; cursor:pointer; }
+.customer-login-close:hover { background:#e7eee2; }
+.customer-login-mark { display:block; width:62px; height:62px; object-fit:contain; padding:10px; margin-bottom:25px; border-radius:50%; background:#263d2b; }
+.customer-eyebrow { margin:0 0 12px; color:#657066; font-size:10px; font-weight:800; letter-spacing:.17em; }
+.customer-login h2 { margin:0; font-family:Georgia,serif; font-weight:400; font-size:38px; letter-spacing:-.04em; line-height:1.1; }
+.customer-login-intro { margin:14px 0 25px; color:#657066; font-size:14px; line-height:1.65; }
+.customer-login-form { display:grid; gap:16px; }
+.customer-login-form label { display:grid; gap:7px; font-size:12px; font-weight:700; }
+.customer-login-form input { box-sizing:border-box; width:100%; min-height:50px; padding:12px 14px; border:1px solid #dcd1bd; border-radius:9px; color:#1d2a20; background:#fff; font:inherit; font-size:16px; }
+.customer-primary { display:inline-flex; align-items:center; justify-content:center; gap:18px; min-height:48px; padding:12px 20px; border:1px solid #36513a; border-radius:9px; color:#fffdf8; background:#36513a; font:inherit; font-size:13px; font-weight:750; text-decoration:none; cursor:pointer; }
+.customer-primary:hover { background:#263d2b; }
+.customer-login-note { margin:22px 0 0; color:#657066; font-size:11px; line-height:1.7; }
+.customer-login-error { min-height:0; margin:0; color:#9f312b; font-size:12px; }
+.customer-login-error:empty { display:none; }
+.customer-login :focus-visible { outline:3px solid #d1a15f; outline-offset:3px; }
+.customer-access { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:42px; padding:0 13px; border:1px solid #ffffff38; border-radius:8px; color:#fffdf8; background:transparent; font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+.customer-access:hover { border-color:#d1a15f; }
+.customer-access svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; }
+.customer-booking-access { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin:24px 0 0; padding:20px 24px; border:1px solid #dcd1bd; border-radius:16px; background:#fffdf8; }
+.customer-booking-access > div { display:flex; gap:14px; align-items:center; }
+.customer-avatar { display:grid; place-items:center; flex:0 0 auto; width:44px; height:44px; border-radius:50%; color:#36513a; background:#e7eee2; font-size:14px; font-weight:800; }
+.customer-booking-access strong { display:block; font-size:14px; }
+.customer-booking-access p { margin:3px 0 0; color:#657066; font-size:12px; }
+.customer-profile-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.customer-text-button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:4px 6px; border:0; color:#36513a; background:transparent; font:inherit; font-size:12px; font-weight:750; text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
+.customer-filled-note { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; padding:10px 12px; border-radius:9px; color:#36513a; background:#e7eee2; font-size:11px; }
+.booking-form input[readonly] { color:#36513a; background:#f5f7f0; }
+.customer-booking-service { display:grid; gap:7px; margin:0 0 20px; color:#657066; font-size:12px; font-weight:750; }
+.customer-booking-service select { width:100%; min-height:48px; padding:10px 12px; border:1px solid #dcd1bd; border-radius:9px; color:#1d2a20; background:#fff; font:inherit; font-size:16px; }
+.customer-result-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:18px; }
+.customer-result-heading { font-family:Georgia,serif; font-size:30px; font-weight:400; letter-spacing:-.03em; }
+.customer-storage-note { padding:12px 16px; border:1px solid #d1a15f; border-radius:10px; color:#6d4d22; background:#fff5df; font-size:13px; }
+@media(max-width:480px) { .customer-login { padding:30px 24px; } .customer-booking-access { padding:17px; } .customer-booking-access > div { gap:10px; } .customer-profile-actions { width:100%; } .customer-access { padding:0 9px; } .customer-login h2 { font-size:34px; } }
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto !important; } }

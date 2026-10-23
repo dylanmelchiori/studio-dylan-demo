@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" href="assets/dylan-logo.jpg" />
+    <link rel="stylesheet" href="calendar-panel.css" />
+    <link rel="stylesheet" href="customer-auth.css" />
     <title>Studio Dylan · Vista de demostración</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="description" content="Conocé Studio Dylan, su estilo y sus servicios. Vista de demostración del diseño y del recorrido de reservas." />
@@ -2046,6 +2048,7 @@
       </nav>
 
       <div class="header-actions">
+        <button class="customer-access" type="button" data-customer-access><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>Ingresar</span></button>
         <a class="compact-cta" href="#turnos">Probar</a>
         <button class="icon-button" type="button" aria-label="Abrir menu" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
@@ -2056,6 +2059,7 @@
     </header>
 
     <nav class="mobile-menu" aria-label="Navegacion mobile">
+      <a href="customer.html">Mi espacio</a>
       <a href="#servicios">Servicios</a>
       <a href="#turnos">Turnos</a>
       <a href="admin.html">Ver panel de demostración ↗</a>
@@ -2075,9 +2079,9 @@
               <a class="primary-button" href="#turnos">Probar reserva</a>
             </div>
             <div class="hero-steps" aria-label="Reserva en tres pasos">
-              <span><b>1</b> Día</span>
-              <span><b>2</b> Horario</span>
-              <span><b>3</b> Datos</span>
+              <span><b>1</b> Tu perfil</span>
+              <span><b>2</b> Tu turno</span>
+              <span><b>3</b> Todo listo</span>
             </div>
           </div>
 
@@ -2165,20 +2169,27 @@
           <p class="section-label">Reserva online</p>
           <h2 class="section-title">Probá cómo reservar tu turno.</h2>
           <p class="section-copy">
-            Elegí un día para ver solamente los horarios disponibles.
+            Entrá a tu espacio, elegí cuándo venir y dejá el resto listo.
           </p>
+
+          <div class="customer-booking-access" id="customer-booking-access">
+            <div><span class="customer-avatar" id="customer-avatar" aria-hidden="true">01</span><div><strong id="customer-welcome">Primero, nos conocemos.</strong><p id="customer-caption">Ingresá una vez. Tus datos estarán listos en cada reserva.</p></div></div>
+            <div class="customer-profile-actions"><button class="customer-primary" id="customer-booking-login" type="button">Ingresar para reservar ↗</button><a class="customer-text-button" id="customer-space-link" href="customer.html" hidden>Ver mi espacio ↗</a><button class="customer-text-button" id="customer-booking-logout" type="button" hidden>Salir</button></div>
+          </div>
+          <p id="customer-storage-note" role="status" class="customer-storage-note" hidden>El navegador no permite guardar los datos. Podés probar la reserva en esta página; para abrir Mi espacio y conservar tus turnos, habilitá el almacenamiento.</p>
 
           <div class="selection-bar" id="selection-bar" aria-live="polite" hidden>
             <div>
               <span>Selección actual</span>
               <strong id="mobile-selected-day"></strong>
             </div>
-            <a href="#booking-form">Completar datos</a>
+            <a href="#booking-form">Revisar turno</a>
           </div>
 
-          <div id="demo-result" class="demo-result" role="status" hidden><strong></strong><p class="demo-summary"></p><p>Es un turno de prueba guardado solo en este navegador. <a href="admin.html"><u>Verlo en el panel demo ↗</u></a></p></div>
-          <div class="booking-shell">
+          <div id="demo-result" class="demo-result" role="status" tabindex="-1" hidden><strong class="customer-result-heading"></strong><p class="demo-summary"></p><p id="customer-result-note">Tu turno de prueba quedó guardado en este navegador.</p><div class="customer-result-actions"><a class="customer-primary" id="customer-result-link" href="customer.html">Ver mi turno y recordatorios ↗</a><button id="booking-calendar" class="calendar-public-trigger" type="button">Añadir al calendario</button></div><p><a id="admin-result-link" href="admin.html"><u>Verlo en el panel demo ↗</u></a></p><p id="booking-calendar-message" aria-live="polite"></p></div>
+          <div class="booking-shell" id="customer-booking-shell" hidden>
             <div class="booking-board" aria-label="Selector de turnos">
+              <label class="customer-booking-service">¿Qué hacemos esta vez?<select id="service-select" required aria-label="Servicio del turno"></select></label>
               <h3 class="step-heading"><span>1</span> Elegí un día</h3>
               <div class="week-tabs" id="day-tabs" role="group" aria-label="Días disponibles"></div>
 
@@ -2197,8 +2208,8 @@
             </div>
 
             <aside class="booking-summary" id="booking-details" aria-label="Resumen de reserva" hidden>
-              <h3 class="step-heading"><span>3</span> Completá tus datos</h3>
-              <p>Usá datos de ejemplo para probar el formulario.</p>
+              <h3 class="step-heading"><span>3</span> Revisá y confirmá</h3>
+              <p>Tu momento ya está casi listo.</p>
 
               <div class="selected-turn">
                 <div>
@@ -2212,17 +2223,14 @@
               </div>
 
               <form class="booking-form" id="booking-form">
-                <label>
-                  Servicio
-                  <select id="service-select" required></select>
-                </label>
+                <div class="customer-filled-note"><span>✓ Datos de tu perfil, ya completados</span><button class="customer-text-button" type="button" id="customer-edit-booking">Editar</button></div>
                 <label>
                   Nombre
-                  <input type="text" name="nombre" placeholder="Nombre de ejemplo" autocomplete="off" maxlength="80" required />
+                  <input type="text" name="nombre" autocomplete="name" maxlength="80" readonly required />
                 </label>
                 <label>
                   WhatsApp
-                  <input type="tel" name="whatsapp" placeholder="+54 9 11 5555-5555" autocomplete="off" maxlength="40" inputmode="tel" required />
+                  <input type="tel" name="whatsapp" autocomplete="tel" maxlength="40" inputmode="tel" readonly required />
                 </label>
                 <button class="submit-button" type="submit">Confirmar prueba</button>
                 <div class="form-message" aria-live="polite"></div>
@@ -2262,6 +2270,10 @@
 
     <script src="content.js"></script>
     <script src="demo-store.js"></script>
+    <script src="calendar-files.js"></script>
+    <script src="calendar-panel.js"></script>
+    <script src="customer-store.js"></script>
+    <script src="customer-auth.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
