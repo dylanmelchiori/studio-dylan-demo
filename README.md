@@ -1,6 +1,6 @@
 # Studio Dylan — web y panel de demostración
 
-Esta es la copia de trabajo de la web estática preparada para Render. Incluye la página pública y un panel de demostración para mostrarle al cliente cómo podría administrar el estudio. No necesita instalar dependencias ni compilar.
+Este repositorio contiene la versión vigente de la web estática preparada para Render: página pública, espacio del cliente y panel de administración de demostración. No necesita instalar dependencias ni compilar.
 
 ## Ver en esta computadora
 
@@ -81,7 +81,7 @@ Turnos, servicios y contenido de la página se guardan en localStorage bajo `stu
 
 ## Actualizar la versión en Render
 
-El paquete conserva la estructura existente: `dist/`, `render.yaml` y este archivo. Para actualizar el sitio actual, reemplazar en su repositorio el contenido de `dist/` por el de esta carpeta. Mantener la configuración existente de publicación estática con directorio `dist`.
+La web que publica Render está en `dist/`. Los cambios se realizan en esa carpeta y se suben a este repositorio. Mantener la configuración de publicación estática con directorio `dist` en `render.yaml`.
 
 El panel está en `/admin.html` y el espacio del cliente en `/customer.html`. El repositorio de publicación es [dylanmelchiori/studio-dylan-demo](https://github.com/dylanmelchiori/studio-dylan-demo), en la rama `main`. Al subir una actualización, Render publica la carpeta `dist` si el despliegue automático está habilitado.
 
@@ -101,4 +101,4 @@ El panel está en `/admin.html` y el espacio del cliente en `/customer.html`. El
 - `dist/calendar-files.js`: enlaces de borrador Google Calendar y archivos iCalendar sin dependencias.
 - `dist/reminders-panel.js` y `.css`: diseño y simulación visual de recordatorios por WhatsApp.
 
-La copia anterior y el proyecto original de Dylan permanecen intactos. Los cambios siguientes se trabajan en esta carpeta `studio-dylan-demo`.
+La estructura activa del proyecto es `dist/`, `tests/`, `render.yaml`, `.gitignore` y este README. Las versiones anteriores se pueden recuperar desde el historial de Git; no hace falta mantener copias de la web ni ZIP antiguos dentro del repositorio.
